@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIT Academic Portal - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h2>VIT Academic Portal</h2>
+            </div>
+            <div class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
+                    <li><a href="#subjects" class="nav-link">Subjects</a></li>
+                    <li><a href="#gpa-calculator" class="nav-link">GPA Calculator</a></li>
+                    <li><a href="#timetable" class="nav-link">Timetable</a></li>
+                    <li><a href="#reviews" class="nav-link">Reviews</a></li>
+                </ul>
+            </div>
+            <div class="user-info">
+                <span id="userName">Welcome!</span>
+                <button id="logoutBtn" class="logout-btn">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="container">
+                <div class="welcome-card">
+                    <h1>Welcome, <span id="studentName">Student</span>!</h1>
+                    <p>Manage your academic journey efficiently</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Current CGPA</h3>
+                        <div class="stat-value" id="currentCGPA">--</div>
+                        <div class="stat-label">Overall Performance</div>
+                        <button class="edit-cgpa-btn" onclick="editCurrentCGPA()">Edit</button>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Subjects</h3>
+                        <div class="stat-value" id="activeSubjects">0</div>
+                        <div class="stat-label">This Semester</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Study Hours</h3>
+                        <div class="stat-value" id="totalStudyHours">0</div>
+                        <div class="stat-label">Hours Planned</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Target CGPA</h3>
+                        <div class="stat-value" id="targetCGPA">--</div>
+                        <div class="stat-label">Goal to Achieve</div>
+                        <button class="edit-cgpa-btn" onclick="editTargetCGPA()">Edit</button>
+                    </div>
+                </div>
+
+                <!-- CGPA Input Modal -->
+                <div id="cgpaModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 id="modalTitle">Update CGPA</h3>
+                            <button class="close-modal" onclick="closeModal()">×</button>
+                        </div>
+                        <form id="cgpaForm" class="cgpa-form">
+                            <div class="form-group">
+                                <label for="cgpaInput">CGPA Value</label>
+                                <input type="number" id="cgpaInput" step="0.01" min="0" max="10" required>
+                                <small>Enter your CGPA (0.00 - 10.00)</small>
+                            </div>
+                            <button type="submit" class="submit-btn">Save CGPA</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button class="action-btn" onclick="showSection('subjects')">
+                        <span class="btn-icon">📚</span>
+                        Add Subject
+                    </button>
+                    <button class="action-btn" onclick="showSection('gpa-calculator')">
+                        <span class="btn-icon">📊</span>
+                        Calculate GPA
+                    </button>
+                    <button class="action-btn" onclick="showSection('timetable')">
+                        <span class="btn-icon">📅</span>
+                        View Timetable
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Subjects Section -->
+        <section id="subjects" class="section">
+            <div class="container">
+                <h2>Subject Management</h2>
+                
+                <div class="subject-form-card">
+                    <h3>Add New Subject</h3>
+                    <form id="subjectForm" class="subject-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="subjectName">Subject Name</label>
+                                <input type="text" id="subjectName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="examType">Exam Type</label>
+                                <select id="examType" required>
+                                    <option value="">Select Exam Type</option>
+                                    <option value="CAT 1">CAT 1</option>
+                                    <option value="CAT 2">CAT 2</option>
+                                    <option value="FAT">FAT</option>
+                                    <option value="Case Study">Case Study</option>
+                                    <option value="Assessment">Assessment</option>
+                                    <option value="Assignment">Assignment</option>
+                                    <option value="Quiz">Quiz</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studyHours">Study Hours Required</label>
+                                <input type="number" id="studyHours" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="credits">Credits</label>
+                                <input type="number" id="credits" min="1" max="10" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="internalMarks">Internal Marks Scored</label>
+                                <input type="number" id="internalMarks" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="totalInternalMarks">Total Internal Marks</label>
+                                <input type="number" id="totalInternalMarks" min="1" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">Add Subject</button>
+                    </form>
+                </div>
+
+                <div class="subjects-list">
+                    <h3>Subject Priority List</h3>
+                    <div id="subjectsContainer" class="subjects-grid">
+                        <!-- Subjects will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GPA Calculator Section -->
+        <section id="gpa-calculator" class="section">
+            <div class="container">
+                <h2>GPA Calculator</h2>
+                
+                <div class="calculator-tabs">
+                    <button class="tab-btn active" onclick="showCalculatorTab('target')">Target CGPA</button>
+                    <button class="tab-btn" onclick="showCalculatorTab('current')">Current Semester</button>
+                </div>
+
+                <!-- Target CGPA Calculator -->
+                <div id="targetCalculator" class="calculator-panel active">
+                    <h3>Calculate Required GPA for Target CGPA</h3>
+                    <form id="targetForm" class="calculator-form">
+                        <div class="form-group">
+                            <label for="targetCGPAInput">Target CGPA</label>
+                            <input type="number" id="targetCGPAInput" step="0.01" min="6" max="10" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="completedSemesters">Completed Semesters</label>
+                            <input type="number" id="completedSemesters" min="1" required>
+                        </div>
+                        
+                        <div id="semesterGPAs" class="semester-gpas">
+                            <!-- Semester GPA inputs will be added dynamically -->
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">Calculate Required GPA</button>
+                    </form>
+                    
+                    <div id="targetResult" class="result-panel"></div>
+                </div>
+
+                <!-- Current Semester Calculator -->
+                <div id="currentCalculator" class="calculator-panel">
+                    <h3>Calculate Current Semester GPA</h3>
+                    <form id="currentForm" class="calculator-form">
+                        <div id="subjectsInput">
+                            <div class="subject-input-row">
+                                <div class="form-group">
+                                    <label>Grade</label>
+                                    <select class="grade-select" required>
+                                        <option value="">Select Grade</option>
+                                        <option value="10">S (10)</option>
+                                        <option value="9">A (9)</option>
+                                        <option value="8">B (8)</option>
+                                        <option value="7">C (7)</option>
+                                        <option value="6">D (6)</option>
+                                        <option value="5">E (5)</option>
+                                        <option value="0">F (0)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Credits</label>
+                                    <input type="number" class="credit-input" min="1" max="10" required>
+                                </div>
+                                <button type="button" class="remove-btn" onclick="removeSubjectRow(this)">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="add-subject-btn" onclick="addSubjectRow()">Add Subject</button>
+                        <button type="submit" class="submit-btn">Calculate GPA</button>
+                    </form>
+                    
+                    <div id="currentResult" class="result-panel"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timetable Section -->
+        <section id="timetable" class="section">
+            <div class="container">
+                <h2>Weekly Timetable</h2>
+                
+                <div class="timetable-container">
+                    <table class="timetable-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Monday</th>
+                                <th>Tuesday</th>
+                                <th>Wednesday</th>
+                                <th>Thursday</th>
+                                <th>Friday</th>
+                                <th>Saturday</th>
+                                <th>Sunday</th>
+                            </tr>
+                        </thead>
+                        <tbody id="timetableBody">
+                            <!-- Timetable will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="timetable-actions">
+                    <button class="action-btn" onclick="generateTimetable()">Generate Timetable</button>
+                    <button class="action-btn" onclick="clearTimetable()">Clear Timetable</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reviews Section -->
+        <section id="reviews" class="section">
+            <div class="container">
+                <h2>Faculty Reviews</h2>
+                
+                <div class="review-form-card">
+                    <h3>Add Faculty Review</h3>
+                    <form id="reviewForm" class="review-form">
+                        <div class="form-group">
+                            <label for="facultyName">Faculty Name</label>
+                            <input type="text" id="facultyName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <input type="text" id="subject" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="rating">Rating</label>
+                            <div class="rating-container">
+                                <div class="rating-buttons" id="ratingButtons">
+                                    <button type="button" class="rating-btn" data-rating="1">1</button>
+                                    <button type="button" class="rating-btn" data-rating="2">2</button>
+                                    <button type="button" class="rating-btn" data-rating="3">3</button>
+                                    <button type="button" class="rating-btn" data-rating="4">4</button>
+                                    <button type="button" class="rating-btn" data-rating="5">5</button>
+                                </div>
+                                <input type="hidden" id="rating" value="0" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="reviewComment">Review</label>
+                            <textarea id="reviewComment" rows="4" placeholder="Share your experience..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">Submit Review</button>
+                    </form>
+                </div>
+
+                <div class="reviews-list">
+                    <h3>Recent Reviews</h3>
+                    <div id="reviewsContainer" class="reviews-grid">
+                        <!-- Reviews will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
