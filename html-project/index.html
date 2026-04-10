@@ -313,6 +313,47 @@
         </section>
     </main>
 
+    <!-- Timetable Edit Modal -->
+    <div id="timetableEditModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Timetable Slot</h3>
+                <button class="close-modal" onclick="closeTimetableEditModal()">×</button>
+            </div>
+            <form id="timetableEditForm" class="timetable-edit-form">
+                <div class="form-group">
+                    <label for="editActivity">Activity</label>
+                    <input type="text" id="editActivity" placeholder="Enter activity or leave empty for free time" required>
+                </div>
+                <div class="form-group">
+                    <label for="editSubject">Subject (Optional)</label>
+                    <select id="editSubject">
+                        <option value="">Select Subject</option>
+                        <!-- Subjects will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editType">Type</label>
+                    <select id="editType" required>
+                        <option value="study">Study</option>
+                        <option value="class">Class</option>
+                        <option value="exam">Exam</option>
+                        <option value="break">Break</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editNotes">Notes (Optional)</label>
+                    <textarea id="editNotes" rows="3" placeholder="Add any notes..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="cancel-btn" onclick="closeTimetableEditModal()">Cancel</button>
+                    <button type="submit" class="submit-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

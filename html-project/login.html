@@ -1,31 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIT Academic Portal - Login</title>
+    <title>VIT Student Portal - Login</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="login-page">
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h1>VIT Academic Portal</h1>
+                <h1>VIT Student Portal</h1>
                 <p>Student Academic Management System</p>
             </div>
-            
             <form id="loginForm" class="login-form">
                 <div class="form-group">
                     <label for="email">VIT Email ID</label>
                     <input type="email" id="email" name="email" placeholder="name@vitstudent.ac.in" required>
                     <small class="form-hint">Enter your VIT student email address</small>
                 </div>
-                
                 <div class="form-group">
                     <label for="name">Full Name</label>
                     <input type="text" id="name" name="name" placeholder="Enter your full name" required>
                 </div>
-                
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Enter your password" required>
@@ -33,18 +29,14 @@
                         <span id="toggleIcon">👁️</span>
                     </div>
                 </div>
-                
-                <button type="submit" class="login-btn">Login to Portal</button>
-                
+                <button type="submit" class="login-btn">Portal Login</button>
                 <div id="errorMessage" class="error-message"></div>
             </form>
-            
             <div class="login-footer">
-                <p>Secure login for VIT students only</p>
+                <p>Secure login only for VIT students</p>
             </div>
         </div>
     </div>
-    
     <script src="login.js"></script>
 </body>
 </html>

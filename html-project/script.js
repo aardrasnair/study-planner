@@ -137,6 +137,10 @@ function initializeEventListeners()
         {
         btn.addEventListener('click', handleRatingClick);
     });
+    const timetableEditForm = document.getElementById('timetableEditForm');
+    if (timetableEditForm) {
+        timetableEditForm.addEventListener('submit', handleTimetableEditSubmit);
+    }
     const completedSemesters = document.getElementById('completedSemesters');
     if (completedSemesters) {
         completedSemesters.addEventListener('input', generateSemesterInputs);
@@ -185,8 +189,12 @@ function loadStoredData()
         targetCGPAValue=parseFloat(storedTargetCGPA);
         document.getElementById('targetCGPA').textContent = targetCGPAValue.toFixed(2);
     }
+    const storedManualTimetable = localStorage.getItem('manualTimetable');
+    if (storedManualTimetable) {
+        manualTimetable = JSON.parse(storedManualTimetable);
+    }
+    updateDashboard();
 }
-
 function saveToLocalStorage(key, data) 
 {
     localStorage.setItem(key, JSON.stringify(data));
@@ -265,11 +273,13 @@ function createSubjectCard(subject)
 }
 function removeSubject(id) 
 {
-    subjects=subjects.filter(subject => subject.id !== id);
-    saveToLocalStorage('subjects', subjects);
-    displaySubjects();
-    updateDashboard();
-    showNotification('Subject removed', 'info');
+    if (confirm('Are you sure you want to delete this subject?')) {
+        subjects=subjects.filter(subject => subject.id !== id);
+        saveToLocalStorage('subjects', subjects);
+        displaySubjects();
+        updateDashboard();
+        showNotification('Subject deleted successfully', 'info');
+    }
 }
 function generateSemesterInputs() 
 {
@@ -423,7 +433,14 @@ function generateTimetable()
         days.forEach(day => 
             {
             const cell = document.createElement('td');
-            if (time === '12:00-1:00') 
+            
+            // Check for manual edits first
+            const manualEdit = manualTimetable[day] && manualTimetable[day][time];
+            if (manualEdit) {
+                cell.textContent = manualEdit.name;
+                cell.className = `editable ${manualEdit.type}`;
+                applyTimetableCellStyle(cell, manualEdit.type);
+            } else if (time === '12:00-1:00') 
                 {
                 cell.textContent = 'Lunch';
                 cell.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
@@ -453,34 +470,41 @@ function generateTimetable()
             }
             else 
                 {
-                const daySchedule = schedule[day] || {};
-                const subject = daySchedule[time];
+                const subject = schedule[day] && schedule[day][time];
                 if (subject) 
                     {
-                    cell.textContent = `${subject.name} ${subject.type ? `(${subject.type})` : ''}`;
-                    cell.style.background = getSubjectColor(subject.priority);
-                    cell.style.fontWeight = 'bold';
-                    cell.style.color = 'white';
-                    cell.style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
-                    if (subject.examType === 'FAT') {
-                        cell.textContent = '📝 ' + cell.textContent;
-                    } else if (subject.examType && subject.examType.includes('CAT')) {
-                        cell.textContent = '📋 ' + cell.textContent;
+                    if (subject.type === 'exam-prep') 
+                        {
+                        cell.textContent = subject.name;
+                        cell.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+                        cell.style.fontWeight = 'bold';
+                        cell.style.color = '#92400e';
+                    } 
+                    else 
+                        {
+                        cell.textContent = subject.name;
+                        cell.style.background = getSubjectColor(subject.priority);
+                        cell.style.fontWeight = 'bold';
+                        cell.style.color = 'white';
                     }
                 } 
                 else 
                     {
-                    cell.textContent = 'Free Period';
-                    cell.style.background = 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)';
-                    cell.style.color = '#166534';
-                    cell.style.fontStyle = 'italic';
+                    cell.textContent = 'Free';
+                    cell.className = 'editable';
+                    cell.style.background = 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)';
                 }
             }
             row.appendChild(cell);
         });
+        
         timetableBody.appendChild(row);
     });
-    showNotification('Timetable generated', 'success');
+    
+    // Add click event listener
+    timetableBody.addEventListener('click', handleTimetableClick);
+    
+    showNotification('Timetable generated with smart scheduling!', 'success');
 }
 function createRealisticSchedule() 
 {
@@ -552,6 +576,134 @@ function clearTimetable() {
     timetableBody.innerHTML = '';
     showNotification('Timetable cleared', 'info');
 }
+
+// Timetable edit functionality
+let manualTimetable = {}; // Store manual edits
+let currentEditCell = null; // Track current editing cell
+
+function openTimetableEditModal(cell, day, time) {
+    currentEditCell = { cell, day, time };
+    
+    // Populate subject dropdown
+    const subjectSelect = document.getElementById('editSubject');
+    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+    subjects.forEach(subject => {
+        const option = document.createElement('option');
+        option.value = subject.name;
+        option.textContent = subject.name;
+        subjectSelect.appendChild(option);
+    });
+    
+    // Get current cell data
+    const currentData = manualTimetable[day] && manualTimetable[day][time] 
+        ? manualTimetable[day][time] 
+        : cell.textContent;
+    
+    // Pre-fill form if data exists
+    if (currentData && currentData !== 'Free' && currentData !== 'Lunch' && currentData !== 'Holiday') {
+        document.getElementById('editActivity').value = currentData.name || currentData;
+        document.getElementById('editSubject').value = currentData.name || '';
+        document.getElementById('editType').value = currentData.type || 'study';
+        document.getElementById('editNotes').value = currentData.notes || '';
+    } else {
+        // Reset form
+        document.getElementById('editActivity').value = '';
+        document.getElementById('editSubject').value = '';
+        document.getElementById('editType').value = 'study';
+        document.getElementById('editNotes').value = '';
+    }
+    
+    // Show modal
+    document.getElementById('timetableEditModal').style.display = 'block';
+}
+
+function closeTimetableEditModal() {
+    document.getElementById('timetableEditModal').style.display = 'none';
+    currentEditCell = null;
+}
+
+function handleTimetableEditSubmit(e) {
+    e.preventDefault();
+    
+    if (!currentEditCell) return;
+    
+    const { cell, day, time } = currentEditCell;
+    const activity = document.getElementById('editActivity').value.trim();
+    const subject = document.getElementById('editSubject').value;
+    const type = document.getElementById('editType').value;
+    const notes = document.getElementById('editNotes').value.trim();
+    
+    // Store manual edit
+    manualTimetable[day] = manualTimetable[day] || {};
+    
+    if (activity) {
+        manualTimetable[day][time] = {
+            name: activity,
+            subject: subject,
+            type: type,
+            notes: notes
+        };
+        
+        // Update cell display
+        cell.textContent = activity;
+        cell.className = `editable ${type}`;
+        
+        // Apply styling based on type
+        applyTimetableCellStyle(cell, type);
+    } else {
+        // Clear the slot
+        delete manualTimetable[day][time];
+        cell.textContent = 'Free';
+        cell.className = 'editable';
+        cell.style.background = '';
+    }
+    
+    // Save to localStorage
+    saveToLocalStorage('manualTimetable', manualTimetable);
+    
+    closeTimetableEditModal();
+    showNotification('Timetable updated successfully', 'success');
+}
+
+function applyTimetableCellStyle(cell, type) {
+    switch(type) {
+        case 'study':
+            cell.style.background = 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)';
+            cell.style.color = '#1e40af';
+            break;
+        case 'class':
+            cell.style.background = 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)';
+            cell.style.color = '#166534';
+            break;
+        case 'exam':
+            cell.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+            cell.style.color = '#92400e';
+            break;
+        case 'break':
+            cell.style.background = 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)';
+            cell.style.color = '#9f1239';
+            break;
+        default:
+            cell.style.background = 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)';
+            cell.style.color = '#374151';
+    }
+}
+
+function handleTimetableClick(e) {
+    const cell = e.target;
+    if (cell.tagName === 'TD' && !cell.classList.contains('header')) {
+        const timeSlot = cell.closest('tr').querySelector('td:first-child').textContent;
+        const day = cell.closest('table').querySelector('thead tr th').textContent;
+        
+        // Don't allow editing lunch or fixed slots
+        if (timeSlot === '12:00-1:00' || cell.textContent === 'Lunch' || cell.textContent === 'Holiday') {
+            return;
+        }
+        
+        openTimetableEditModal(cell, day, timeSlot);
+    }
+}
+
 function handleRatingClick(e) {
     const rating = parseInt(e.target.dataset.rating);
     document.getElementById('rating').value = rating;
@@ -566,6 +718,7 @@ function handleRatingClick(e) {
 }
 function handleReviewSubmit(e) {
     e.preventDefault();
+    
     const review = {
         id: Date.now(),
         facultyName: document.getElementById('facultyName').value,
@@ -574,16 +727,16 @@ function handleReviewSubmit(e) {
         comment: document.getElementById('reviewComment').value,
         date: new Date().toLocaleDateString()
     };
-    if (review.rating === 0) {
-        showNotification('Please select a rating', 'error');
-        return;
-    }
-    reviews.unshift(review);
+    
+    reviews.push(review);
     saveToLocalStorage('reviews', reviews);
     displayReviews();
     e.target.reset();
+    
+    // Reset rating buttons
+    document.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById('rating').value = 0;
-    document.querySelectorAll('.star').forEach(star => star.classList.remove('active'));
+    
     showNotification('Review submitted successfully!', 'success');
 }
 function displayReviews() 
@@ -604,7 +757,7 @@ function createReviewCard(review)
 {
     const card = document.createElement('div');
     card.className = 'review-card';
-    const stars = '⭐'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+    const stars = '('.repeat(review.rating) + '('.repeat(5 - review.rating);
     card.innerHTML = `
         <div class="review-header">
             <div>
@@ -615,9 +768,18 @@ function createReviewCard(review)
         </div>
         <div class="review-comment">${review.comment}</div>
         <div style="margin-top: 10px; font-size: 0.8rem; color: #999;">${review.date}</div>
+        <button onclick="deleteReview(${review.id})" class="delete-btn" style="margin-top: 10px;">Delete</button>
     `;
     
     return card;
+}
+function deleteReview(id) {
+    if (confirm('Are you sure you want to delete this review?')) {
+        reviews = reviews.filter(review => review.id !== id);
+        saveToLocalStorage('reviews', reviews);
+        displayReviews();
+        showNotification('Review deleted successfully', 'info');
+    }
 }
 function updateDashboard() 
 {
